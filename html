@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forecastor - AI-Powered Disease Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Landing Page Styles */
+        .landing-page {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.3), transparent 50%),
+                        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-orb-1 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            top: -10%;
+            left: -10%;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .bg-orb-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            bottom: -5%;
+            right: -5%;
+            animation: float 15s ease-in-out infinite reverse;
+            pointer-events: none;
+        }
+
+        .landing-container {
+            max-width: 1400px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .landing-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .landing-logo {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .landing-title {
+            font-size: 5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .landing-subtitle {
+            font-size: 1.6rem;
+            color: rgba(255,255,255,0.95);
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .landing-divider {
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            margin: 2rem auto;
+            border-radius: 2px;
+        }
+
+        .mode-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out 0.3s backwards;
+        }
+
+        .mode-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+            border-radius: 30px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 90px rgba(0,0,0,0.4);
+        }
+
+        .mode-card.researcher:hover {
+            border-color: rgba(52, 152, 219, 0.5);
+        }
+
+        .mode-card.public:hover {
+            border-color: rgba(231, 76, 60, 0.5);
+        }
+
+        .card-gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .mode-card.researcher .card-gradient-overlay {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.05) 0%, transparent 100%);
+        }
+
+        .mode-card.public .card-gradient-overlay {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.05) 0%, transparent 100%);
+        }
+
+        .mode-card:hover .card-gradient-overlay {
+            opacity: 1;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-icon {
+            font-size: 5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 4px 10px rgba(52, 152, 219, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .mode-card:hover .card-icon {
+            transform: scale(1.1);
+        }
+
+        .card-title {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .card-title.public-title {
+            background: linear-gradient(135deg, #2c3e50 0%, #e74c3c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-description {
+            color: #5a6c7d;
+            font-size: 1.15rem;
+            text-align: center;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .card-features {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1.5rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(52, 152, 219, 0.1);
+        }
+
+        .features-title {
+            margin: 0 0 1rem 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: #34495e;
+            transition: transform 0.2s ease;
+        }
+
+        .mode-card:hover .feature-item {
+            transform: translateX(5px);
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+        }
+
+        .card-button {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 1.25rem;
+            border-radius: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.15rem;
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .card-button.public-button {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
+        }
+
+        .mode-card:hover .card-button {
+            transform: scale(1.05);
+        }
+
+        .system-info {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2.5rem;
+            text-align: center;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease-out 0.6s backwards;
+        }
+
+        .system-info h3 {
+            margin: 0 0 1.5rem 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .system-info p {
+            margin: 0 0 2rem 0;
+            font-size: 1.15rem;
+            line-height: 1.8;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+
+        .stat-badges {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-badge {
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .stat-badge:hover {
+            transform: translateY(-5px);
+            background: linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.25) 100%);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+            font-weight: 400;
+        }
+
+        /* Researcher Tool Styles */
+        .researcher-tool {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .researcher-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.25rem 0;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nav-header {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .nav-back-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
+        }
+
+        .nav-title {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-location {
+            margin-left: auto;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: capitalize;
+            font-size: 0.95rem;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab.active {
+            background: rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.5);
+            font-weight: 600;
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .content-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dashboard-title {
+            margin: 0;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .time-range-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .time-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+        }
+
+        .time-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .metric-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-title {
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-badge {
+            font-size: 0.85rem;
+            color: #5a6c7d;
+            background: linear-gradient(135deg, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0.01) 100%);
+            padding: 0.4rem 1rem;
+            border-radius: 12px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .chart-title {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        /* Public Usage Styles */
+        .public-usage {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .public-header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .public-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .public-back-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .public-back-btn:hover {
+            transform: translateX(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .public-title {
+            margin: 0;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .header-location {
+            font-size: 0.95rem;
+            color: #5a6c7d;
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+        }
+
+        .public-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .risk-alert-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: 3px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .risk-gradient-bg {
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            pointer-events: none;
+        }
+
+        .risk-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .risk-emoji {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.2));
+        }
+
+        .risk-level {
+            font-size: 3rem;
+            margin: 0 0 1rem 0;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .risk-advice {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin: 0 0 2rem 0;
+            font-weight: 400;
+        }
+
+        .risk-action-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .action-title {
+            margin: 0 0 1rem 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .action-text {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        .symptom-checker-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .section-title {
+            margin-top: 0;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .symptoms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .symptom-btn {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #2c3e50;
+            border: 2px solid #dee2e6;
+            padding: 1.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .symptom-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .symptom-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .symptom-icon {
+            font-size: 2.5rem;
+        }
+
+        .check-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.2rem 3rem;
+            font-size: 1.3rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .results-box {
+            margin-top: 2rem;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border: 3px solid;
+        }
+
+        .results-box.positive {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+            border-color: #e74c3c;
+        }
+
+        .results-box.negative {
+            background: linear-gradient(135deg, #f0fff4 0%, #e5ffe5 100%);
+            border-color: #2ecc71;
+        }
+
+        .results-title {
+            margin-top: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .results-text {
+            font-size: 1.15rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .forecast-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .forecast-day {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            border-radius: 20px;
+            border: 2px solid;
+            transition: all 0.3s ease;
+            cursor: default;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .forecast-day:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .day-name {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .day-emoji {
+            font-size: 3rem;
+            margin: 0.5rem 0;
+        }
+
+        .day-level {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .public-footer {
+            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            text-align: center;
+            border-top: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .footer-title {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .footer-text {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .landing-title {
+                font-size: 3rem;
+            }
+            .landing-subtitle {
+                font-size: 1.2rem;
+            }
+            .mode-cards {
+                grid-template-columns: 1fr;
+            }
+            .card-title {
+                font-size: 2rem;
+            }
+            .risk-emoji {
+                font-size: 4rem;
+            }
+            .risk-level {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LANDING PAGE -->
+<div id="landingPage" class="landing-page">
+    <div class="bg-orb-1"></div>
+    <div class="bg-orb-2"></div>
+    
+    <div class="landing-container">
+        <div class="landing-header">
+            <div class="landing-logo">🔮</div>
+            <h1 class="landing-title">Forecastor</h1>
+            <p class="landing-subtitle">AI-Powered Disease Detection & Public Health Intelligence</p>
+            <div class="landing-divider"></div>
+        </div>
+
+        <div class="mode-cards">
+            <!-- Researcher Card -->
+            <div class="mode-card researcher" onclick="showResearcher()">
+                <div class="card-gradient-overlay"></div>
+                <div class="card-content">
+                    <div class="card-icon">🔬</div>
+                    <h2 class="card-title">Researcher Tool</h2>
+                    <p class="card-description">
+                        Advanced analytics, ML models, and quantitative risk assessment for epidemiological research
+                    </p>
+                    <div class="card-features">
+                        <h4 class="features-title"><span>✨</span> Advanced Features</h4>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <span class="feature-icon">📊</span>
+                                <span>Interactive risk scoring dashboard</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🎯</span>
+                                <span>ML model metrics (AUC-ROC: 0.934)</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🧬</span>
+                                <span>Feature importance analysis (47 features)</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🌐</span>
+                                <span>Geographic risk distribution</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">📈</span>
+                                <span>Real-time surveillance analytics</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="card-button">
+                        <span>Enter Research Mode</span>
+                        <span style="font-size: 1.3rem;">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Public Card -->
+            <div class="mode-card public" onclick="showPublic()">
+                <div class="card-gradient-overlay"></div>
+                <div class="card-content">
+                    <div class="card-icon">👥</div>
+                    <h2 class="card-title public-title">Public Usage</h2>
+                    <p class="card-description">
+                        Easy-to-understand health alerts, symptom checker, and community protection tools for everyone
+                    </p>
+                    <div class="card-features">
+                        <h4 class="features-title"><span>✨</span> Public Features</h4>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <span class="feature-icon">😊</span>
+                                <span>Simple risk indicators & alerts</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🩺</span>
+                                <span>Symptom checker with advice</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">📅</span>
+                                <span>7-day health forecast</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🚨</span>
+                                <span>Public health notices & recalls</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🛡️</span>
+                                <span>Food safety & environmental alerts</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="card-button public-button">
+                        <span>Enter Public Mode</span>
+                        <span style="font-size: 1.3rem;">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="system-info">
+            <h3>🛡️ About Forecastor</h3>
+            <p>
+                Forecastor uses cutting-edge AI and machine learning to predict disease outbreaks 7 days in advance 
+                with 93% accuracy. By analyzing environmental data and community health reports, 
+                we protect communities through early warning and actionable intelligence.
+            </p>
+            <div class="stat-badges">
+                <div class="stat-badge">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value">93% Accuracy</div>
+                    <div class="stat-label">Prediction Rate</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value">47 Features</div>
+                    <div class="stat-label">Data Points</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-value">7-Day Lead</div>
+                    <div class="stat-label">Early Warning</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value">65,550+</div>
+                    <div class="stat-label">Reports Analyzed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RESEARCHER TOOL PAGE -->
+<div id="researcherPage" class="researcher-tool hidden">
+    <nav class="researcher-nav">
+        <div class="nav-container">
+            <div class="nav-header">
+                <button class="nav-back-btn" onclick="showLanding()">← Back</button>
+                <h2 class="nav-title">🔬 Forecastor Research</h2>
+                <div class="nav-location">📍 San Diego, CA</div>
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showDashboard()">Dashboard</button>
+                <button class="nav-tab" onclick="alert('Analytics view coming soon!')">Analytics</button>
+                <button class="nav-tab" onclick="alert('Map view coming soon!')">Map</button>
+                <button class="nav-tab" onclick="alert('Reports view coming soon!')">Reports</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content-container">
+        <div class="dashboard-header">
+            <h2 class="dashboard-title">Interactive Dashboard</h2>
+            <div class="time-range-buttons">
+                <button class="time-btn active" onclick="setTimeRange(30)">30 Days</button>
+                <button class="time-btn" onclick="setTimeRange(90)">90 Days</button>
+                <button class="time-btn" onclick="setTimeRange(180)">180 Days</button>
+                <button class="time-btn" onclick="setTimeRange(365)">365 Days</button>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="glass-card">
+                <div class="metric-icon">⚡</div>
+                <div class="metric-title">Current Risk</div>
+                <div class="metric-value" style="color: #f39c12;">52.3</div>
+                <div class="metric-badge">Moderate</div>
+            </div>
+            <div class="glass-card">
+                <div class="metric-icon">📈</div>
+                <div class="metric-title">Avg Risk (30d)</div>
+                <div class="metric-value" style="color: #f39c12;">45.8</div>
+                <div class="metric-badge">Trending Up</div>
+            </div>
+            <div class="glass-card">
+                <div class="metric-icon">🔴</div>
+                <div class="metric-title">Outbreak Days</div>
+                <div class="metric-value" style="color: #e74c3c;">3</div>
+                <div class="metric-badge">Last 30d</div>
+            </div>
+            <div class="glass-card">
+                <div class="metric-icon">🎯</div>
+                <div class="metric-title">Model AUC-ROC</div>
+                <div class="metric-value" style="color: #2ecc71;">0.934</div>
+                <div class="metric-badge">Excellent</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3 class="chart-title">🌡️ Environmental Conditions</h3>
+                <div class="chart-container">
+                    <canvas id="environmentChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">📊 Risk Score Timeline</h3>
+                <div class="chart-container">
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3 class="chart-title">🎯 Feature Importance Analysis</h3>
+            <div class="chart-container" style="height: 350px;">
+                <canvas id="featureChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PUBLIC USAGE PAGE -->
+<div id="publicPage" class="public-usage hidden">
+    <header class="public-header">
+        <div class="public-header-content">
+            <div class="header-left">
+                <button class="public-back-btn" onclick="showLanding()">← Back</button>
+                <h1 class="public-title">🔮 Forecastor</h1>
+            </div>
+            <div class="header-location">📍 San Diego, CA</div>
+        </div>
+    </header>
+
+    <div class="public-container">
+        <!-- Risk Alert -->
+        <div class="risk-alert-card" style="border-color: #f39c12;">
+            <div class="risk-gradient-bg" style="background: radial-gradient(circle, rgba(243, 156, 18, 0.15) 0%, transparent 70%);"></div>
+            <div class="risk-content">
+                <div class="risk-emoji">😐</div>
+                <h2 class="risk-level" style="color: #f39c12;">MODERATE RISK</h2>
+                <p class="risk-advice">There's some increased risk of illness in your area.</p>
+                <div class="risk-action-box">
+                    <h3 class="action-title">💡 What You Should Do:</h3>
+                    <p class="action-text">Stay alert. Avoid crowded places if possible. Wash hands frequently.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Symptom Checker -->
+        <div class="symptom-checker-card">
+            <h2 class="section-title">🩺 Symptom Checker</h2>
+            <div class="symptoms-grid">
+                <button class="symptom-btn" onclick="toggleSymptom(this)">
+                    <div class="symptom-icon">🌡️</div>
+                    <div>Fever</div>
+                </button>
+                <button class="symptom-btn" onclick="toggleSymptom(this)">
+                    <div class="symptom-icon">🤧</div>
+                    <div>Cough</div>
+                </button>
+                <button class="symptom-btn" onclick="toggleSymptom(this)">
+                    <div class="symptom-icon">😴</div>
+                    <div>Fatigue</div>
+                </button>
+                <button class="symptom-btn" onclick="toggleSymptom(this)">
+                    <div class="symptom-icon">😣</div>
+                    <div>Sore Throat</div>
+                </button>
+            </div>
+            <button class="check-btn" onclick="checkSymptoms()">Check My Symptoms</button>
+            <div id="resultsBox" class="hidden"></div>
+        </div>
+
+        <!-- 7-Day Forecast -->
+        <div class="forecast-card">
+            <h2 class="section-title">📅 7-Day Forecast</h2>
+            <div class="forecast-grid">
+                <div class="forecast-day" style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.05) 100%); border-color: rgba(243, 156, 18, 0.4);">
+                    <div class="day-name">Mon</div>
+                    <div class="day-emoji">😐</div>
+                    <div class="day-level" style="color: #f39c12;">MODERATE</div>
+                </div>
+                <div class="forecast-day" style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.05) 100%); border-color: rgba(243, 156, 18, 0.4);">
+                    <div class="day-name">Tue</div>
+                    <div class="day-emoji">😐</div>
+                    <div class="day-level" style="color: #f39c12;">MODERATE</div>
+                </div>
+                <div class="forecast-day" style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.05) 100%); border-color: rgba(243, 156, 18, 0.4);">
+                    <div class="day-name">Wed</div>
+                    <div class="day-emoji">😐</div>
+                    <div class="day-level" style="color: #f39c12;">MODERATE</div>
+                </div>
+                <div class="forecast-day" style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.15) 0%, rgba(231, 76, 60, 0.05) 100%); border-color: rgba(231, 76, 60, 0.4);">
+                    <div class="day-name">Thu</div>
+                    <div class="day-emoji">😟</div>
+                    <div class="day-level" style="color: #e74c3c;">HIGH</div>
+                </div>
+                <div class="forecast-day" style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.05) 100%); border-color: rgba(243, 156, 18, 0.4);">
+                    <div class="day-name">Fri</div>
+                    <div class="day-emoji">😐</div>
+                    <div class="day-level" style="color: #f39c12;">MODERATE</div>
+                </div>
+                <div class="forecast-day" style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.05) 100%); border-color: rgba(243, 156, 18, 0.4);">
+                    <div class="day-name">Sat</div>
+                    <div class="day-emoji">😐</div>
+                    <div class="day-level" style="color: #f39c12;">MODERATE</div>
+                </div>
+                <div class="forecast-day" style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.05) 100%); border-color: rgba(243, 156, 18, 0.4);">
+                    <div class="day-name">Sun</div>
+                    <div class="day-emoji">😐</div>
+                    <div class="day-level" style="color: #f39c12;">MODERATE</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="public-footer">
+        <p class="footer-title">🔮 Forecastor</p>
+        <p class="footer-text">Protecting Communities Through Early Detection</p>
+    </footer>
+</div>
+
+<script>
+    // Navigation
+    function showLanding() {
+        document.getElementById('landingPage').classList.remove('hidden');
+        document.getElementById('researcherPage').classList.add('hidden');
+        document.getElementById('publicPage').classList.add('hidden');
+    }
+
+    function showResearcher() {
+        document.getElementById('landingPage').classList.add('hidden');
+        document.getElementById('researcherPage').classList.remove('hidden');
+        document.getElementById('publicPage').classList.add('hidden');
+        initCharts();
+    }
+
+    function showPublic() {
+        document.getElementById('landingPage').classList.add('hidden');
+        document.getElementById('researcherPage').classList.add('hidden');
+        document.getElementById('publicPage').classList.remove('hidden');
+    }
+
+    function showDashboard() {
+        const tabs = document.querySelectorAll('.nav-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    function setTimeRange(days) {
+        const btns = document.querySelectorAll('.time-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // Symptom Checker
+    let selectedSymptoms = new Set();
+
+    function toggleSymptom(btn) {
+        if (btn.classList.contains('selected')) {
+            btn.classList.remove('selected');
+            selectedSymptoms.delete(btn.textContent.trim());
+        } else {
+            btn.classList.add('selected');
+            selectedSymptoms.add(btn.textContent.trim());
+        }
+    }
+
+    function checkSymptoms() {
+        const resultsBox = document.getElementById('resultsBox');
+        const count = selectedSymptoms.size;
+        
+        resultsBox.classList.remove('hidden');
+        
+        if (count >= 2) {
+            resultsBox.className = 'results-box positive';
+            resultsBox.innerHTML = `
+                <h3 class="results-title" style="color: #c0392b;">⚠️ See a Doctor</h3>
+                <p class="results-text" style="color: #7f2020;">You have multiple symptoms. Contact your healthcare provider.</p>
+            `;
+        } else if (count === 1) {
+            resultsBox.className = 'results-box negative';
+            resultsBox.innerHTML = `
+                <h3 class="results-title" style="color: #27ae60;">✅ Monitor Your Symptoms</h3>
+                <p class="results-text" style="color: #1e5631;">Monitor your symptoms. Rest and stay hydrated.</p>
+            `;
+        } else {
+            resultsBox.className = 'results-box negative';
+            resultsBox.innerHTML = `
+                <h3 class="results-title" style="color: #27ae60;">✅ You're Likely OK</h3>
+                <p class="results-text" style="color: #1e5631;">No symptoms detected. Continue healthy habits!</p>
+            `;
+        }
+    }
+
+    // Charts
+    function initCharts() {
+        // Generate sample data
+        const days = 30;
+        const labels = [];
+        const tempData = [];
+        const humidData = [];
+        const riskData = [];
+        
+        for (let i = days; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            tempData.push(15 + Math.random() * 10);
+            humidData.push(8 + Math.random() * 6);
+            riskData.push(30 + Math.random() * 40 + Math.sin(i/5) * 15);
+        }
+
+        // Environment Chart
+        const envCtx = document.getElementById('environmentChart').getContext('2d');
+        new Chart(envCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: tempData,
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Humidity',
+                    data: humidData,
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+
+        // Risk Chart
+        const riskCtx = document.getElementById('riskChart').getContext('2d');
+        new Chart(riskCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Risk Score',
+                    data: riskData,
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.3)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { min: 0, max: 100 }
+                },
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+
+        // Feature Chart
+        const featureCtx = document.getElementById('featureChart').getContext('2d');
+        new Chart(featureCtx, {
+            type: 'bar',
+            data: {
+                labels: ['week_of_year', 'symptom_reports_roll7', 'temperature', 'humidity_x_aqi', 'aqi_lag1', 'temp_x_humidity'],
+                datasets: [{
+                    label: 'Importance',
+                    data: [0.230, 0.096, 0.078, 0.069, 0.062, 0.054],
+                    backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                    borderColor: 'rgba(39, 174, 96, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { min: 0, max: 0.25 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
