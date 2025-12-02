@@ -914,6 +914,166 @@
             display: none;
         }
 
+        /* Public Health Notices Styles */
+        .filter-tab {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .filter-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-tab:hover:not(.active) {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .notice-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 6px solid;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .notice-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .notice-card[data-category="foodborne"] {
+            border-color: #e74c3c;
+        }
+
+        .notice-card[data-category="recall"] {
+            border-color: #e67e22;
+        }
+
+        .notice-card[data-category="environmental"] {
+            border-color: #f39c12;
+        }
+
+        .notice-card[data-category="disease"] {
+            border-color: #9b59b6;
+        }
+
+        .notice-card[data-category="water"] {
+            border-color: #c0392b;
+        }
+
+        .notice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .notice-icon-title {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            flex: 1;
+        }
+
+        .notice-emoji {
+            font-size: 2rem;
+        }
+
+        .notice-title {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .notice-meta {
+            margin: 0.25rem 0 0 0;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        .notice-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .notice-badge.critical {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .notice-badge.medium {
+            background: #f39c12;
+            color: white;
+        }
+
+        .notice-badge.low {
+            background: #3498db;
+            color: white;
+        }
+
+        .notice-description {
+            color: #2c3e50;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin: 0 0 1rem 0;
+        }
+
+        .notice-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .detail-item {
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        .detail-item strong {
+            display: block;
+            color: #7f8c8d;
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .notice-action {
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
+
+        .notice-action strong {
+            margin-right: 0.5rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .landing-title {
@@ -1176,6 +1336,285 @@
             </div>
         </div>
 
+        <!-- Public Health Notices -->
+        <div class="symptom-checker-card">
+            <h2 class="section-title">🚨 Public Health Alerts & Notices</h2>
+            <p style="color: #7f8c8d; font-size: 1.1rem; margin-bottom: 1.5rem;">
+                Stay informed about food recalls, disease outbreaks, and environmental hazards in your area
+            </p>
+
+            <!-- Filter Tabs -->
+            <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem;">
+                <button class="filter-tab active" onclick="filterNotices('all')">
+                    📋 All Notices (8)
+                </button>
+                <button class="filter-tab" onclick="filterNotices('foodborne')">
+                    🦠 Food Safety (2)
+                </button>
+                <button class="filter-tab" onclick="filterNotices('recall')">
+                    ⚠️ Recalls (2)
+                </button>
+                <button class="filter-tab" onclick="filterNotices('environmental')">
+                    💨 Environment (2)
+                </button>
+                <button class="filter-tab" onclick="filterNotices('water')">
+                    💧 Water (1)
+                </button>
+                <button class="filter-tab" onclick="filterNotices('disease')">
+                    🦟 Disease (1)
+                </button>
+            </div>
+
+            <!-- Notices Container -->
+            <div id="noticesContainer">
+                <!-- Notice 1: E. coli Outbreak -->
+                <div class="notice-card" data-category="foodborne">
+                    <div class="notice-header">
+                        <div class="notice-icon-title">
+                            <span class="notice-emoji">🦠</span>
+                            <div>
+                                <h3 class="notice-title">E. coli Outbreak Linked to Romaine Lettuce</h3>
+                                <p class="notice-meta">CDC & FDA • 2 hours ago</p>
+                            </div>
+                        </div>
+                        <span class="notice-badge critical">🔴 URGENT</span>
+                    </div>
+                    <p class="notice-description">
+                        CDC investigating multi-state outbreak. 23 people infected across 5 states. 
+                        Do not eat romaine lettuce from Salinas, California.
+                    </p>
+                    <div class="notice-details">
+                        <div class="detail-item">
+                            <strong>Affected Products:</strong> Romaine lettuce from Salinas, CA
+                        </div>
+                        <div class="detail-item">
+                            <strong>Cases:</strong> 23 ill, 8 hospitalized
+                        </div>
+                    </div>
+                    <div class="notice-action" style="background: #e74c3c;">
+                        <strong>⚡ Action:</strong> Check your fridge and throw away romaine lettuce immediately
+                    </div>
+                </div>
+
+                <!-- Notice 2: Peanut Butter Recall -->
+                <div class="notice-card" data-category="recall">
+                    <div class="notice-header">
+                        <div class="notice-icon-title">
+                            <span class="notice-emoji">⚠️</span>
+                            <div>
+                                <h3 class="notice-title">Voluntary Recall: Peanut Butter Products</h3>
+                                <p class="notice-meta">FDA • 5 hours ago</p>
+                            </div>
+                        </div>
+                        <span class="notice-badge critical">🔴 CRITICAL</span>
+                    </div>
+                    <p class="notice-description">
+                        XYZ Brand peanut butter recalled due to potential Salmonella contamination. 
+                        Multiple lot numbers affected.
+                    </p>
+                    <div class="notice-details">
+                        <div class="detail-item">
+                            <strong>Affected Products:</strong> XYZ Creamy & Crunchy Peanut Butter (all sizes)
+                        </div>
+                        <div class="detail-item">
+                            <strong>Lot Numbers:</strong> Lot #2024-001 through 2024-045
+                        </div>
+                    </div>
+                    <div class="notice-action" style="background: #e67e22;">
+                        <strong>⚡ Action:</strong> Return product to store for full refund. Do not consume.
+                    </div>
+                </div>
+
+                <!-- Notice 3: Air Quality Alert -->
+                <div class="notice-card" data-category="environmental">
+                    <div class="notice-header">
+                        <div class="notice-icon-title">
+                            <span class="notice-emoji">💨</span>
+                            <div>
+                                <h3 class="notice-title">Air Quality Alert - Poor AQI Expected</h3>
+                                <p class="notice-meta">San Diego Air Pollution Control • 1 day ago</p>
+                            </div>
+                        </div>
+                        <span class="notice-badge medium">🟡 MODERATE</span>
+                    </div>
+                    <p class="notice-description">
+                        Wildfire smoke affecting air quality. AQI expected to reach "Unhealthy" levels 
+                        (151-200) tomorrow.
+                    </p>
+                    <div class="notice-details">
+                        <div class="detail-item">
+                            <strong>Affected Area:</strong> Entire San Diego County
+                        </div>
+                        <div class="detail-item">
+                            <strong>Duration:</strong> Tomorrow 6 AM - 8 PM
+                        </div>
+                    </div>
+                    <div class="notice-action" style="background: #f39c12;">
+                        <strong>⚡ Action:</strong> Stay indoors if possible. Use air purifiers. Limit outdoor activities.
+                    </div>
+                </div>
+
+                <!-- Notice 4: West Nile Virus -->
+                <div class="notice-card" data-category="disease">
+                    <div class="notice-header">
+                        <div class="notice-icon-title">
+                            <span class="notice-emoji">🦟</span>
+                            <div>
+                                <h3 class="notice-title">West Nile Virus Activity Detected</h3>
+                                <p class="notice-meta">County Vector Control • 2 days ago</p>
+                            </div>
+                        </div>
+                        <span class="notice-badge medium">🟡 MODERATE</span>
+                    </div>
+                    <p class="notice-description">
+                        Mosquitoes testing positive for West Nile virus in local area. 
+                        2 human cases confirmed this month.
+                    </p>
+                    <div class="notice-details">
+                        <div class="detail-item">
+                            <strong>Affected Area:</strong> North County San Diego
+                        </div>
+                        <div class="detail-item">
+                            <strong>Prevention:</strong> Use DEET repellent, drain standing water
+                        </div>
+                    </div>
+                    <div class="notice-action" style="background: #9b59b6;">
+                        <strong>⚡ Action:</strong> Use mosquito repellent. Eliminate standing water. Wear long sleeves at dawn/dusk.
+                    </div>
+                </div>
+
+                <!-- Notice 5: Medication Recall -->
+                <div class="notice-card" data-category="recall">
+                    <div class="notice-header">
+                        <div class="notice-icon-title">
+                            <span class="notice-emoji">💊</span>
+                            <div>
+                                <h3 class="notice-title">Blood Pressure Medication Recall</h3>
+                                <p class="notice-meta">FDA • 3 days ago</p>
+                            </div>
+                        </div>
+                        <span class="notice-badge low">🔵 INFO</span>
+                    </div>
+                    <p class="notice-description">
+                        ABC Pharmaceuticals recalls specific lots of Valsartan due to impurity detected 
+                        during testing.
+                    </p>
+                    <div class="notice-details">
+                        <div class="detail-item">
+                            <strong>Affected Products:</strong> Valsartan 80mg, 160mg, 320mg tablets
+                        </div>
+                        <div class="detail-item">
+                            <strong>Lot Numbers:</strong> See FDA website for complete list
+                        </div>
+                    </div>
+                    <div class="notice-action" style="background: #3498db;">
+                        <strong>⚡ Action:</strong> Contact your pharmacy. Do NOT stop taking medication without talking to your doctor.
+                    </div>
+                </div>
+
+                <!-- Notice 6: Frozen Chicken Recall -->
+                <div class="notice-card" data-category="foodborne">
+                    <div class="notice-header">
+                        <div class="notice-icon-title">
+                            <span class="notice-emoji">🍗</span>
+                            <div>
+                                <h3 class="notice-title">Salmonella in Frozen Chicken Products</h3>
+                                <p class="notice-meta">USDA FSIS • 4 days ago</p>
+                            </div>
+                        </div>
+                        <span class="notice-badge medium">🟡 MODERATE</span>
+                    </div>
+                    <p class="notice-description">
+                        Popular brand frozen chicken nuggets and strips recalled. No illnesses reported yet.
+                    </p>
+                    <div class="notice-details">
+                        <div class="detail-item">
+                            <strong>Affected Products:</strong> Best Choice Chicken Nuggets & Strips
+                        </div>
+                        <div class="detail-item">
+                            <strong>Package Size:</strong> All package sizes
+                        </div>
+                    </div>
+                    <div class="notice-action" style="background: #e74c3c;">
+                        <strong>⚡ Action:</strong> Check freezer. Return product or throw away. Clean any surfaces it touched.
+                    </div>
+                </div>
+
+                <!-- Notice 7: Boil Water Notice -->
+                <div class="notice-card" data-category="water">
+                    <div class="notice-header">
+                        <div class="notice-icon-title">
+                            <span class="notice-emoji">💧</span>
+                            <div>
+                                <h3 class="notice-title">Boil Water Notice - Downtown Area</h3>
+                                <p class="notice-meta">San Diego Water Department • 6 hours ago</p>
+                            </div>
+                        </div>
+                        <span class="notice-badge critical">🔴 URGENT</span>
+                    </div>
+                    <p class="notice-description">
+                        Water main break may have contaminated water supply. Boil water for 1 minute 
+                        before drinking.
+                    </p>
+                    <div class="notice-details">
+                        <div class="detail-item">
+                            <strong>Affected Area:</strong> Downtown, Gaslamp Quarter, East Village
+                        </div>
+                        <div class="detail-item">
+                            <strong>Duration:</strong> Until further notice (likely 48 hours)
+                        </div>
+                    </div>
+                    <div class="notice-action" style="background: #c0392b;">
+                        <strong>⚡ Action:</strong> BOIL all tap water before drinking, cooking, or brushing teeth.
+                    </div>
+                </div>
+
+                <!-- Notice 8: Beach Closure -->
+                <div class="notice-card" data-category="environmental">
+                    <div class="notice-header">
+                        <div class="notice-icon-title">
+                            <span class="notice-emoji">🏖️</span>
+                            <div>
+                                <h3 class="notice-title">Beach Closure - Bacterial Levels</h3>
+                                <p class="notice-meta">County Dept of Environmental Health • 1 day ago</p>
+                            </div>
+                        </div>
+                        <span class="notice-badge low">🔵 INFO</span>
+                    </div>
+                    <p class="notice-description">
+                        La Jolla Shores closed due to elevated bacteria levels from recent storm runoff.
+                    </p>
+                    <div class="notice-details">
+                        <div class="detail-item">
+                            <strong>Affected Area:</strong> La Jolla Shores Beach
+                        </div>
+                        <div class="detail-item">
+                            <strong>Expected Reopening:</strong> 2-3 days
+                        </div>
+                    </div>
+                    <div class="notice-action" style="background: #16a085;">
+                        <strong>⚡ Action:</strong> Avoid swimming. Beach will reopen when water quality improves.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Subscription -->
+            <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white; text-align: center;">
+                <h3 style="margin-top: 0;">📱 Get Instant Alerts</h3>
+                <p style="margin: 0 0 1rem 0;">
+                    Receive text or email notifications when new health alerts affect your area
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button style="background: white; color: #667eea; border: none; padding: 0.75rem 2rem; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                        📧 Email Alerts
+                    </button>
+                    <button style="background: white; color: #667eea; border: none; padding: 0.75rem 2rem; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                        💬 Text Alerts
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Symptom Checker -->
         <div class="symptom-checker-card">
             <h2 class="section-title">🩺 Symptom Checker</h2>
@@ -1321,6 +1760,22 @@
                 <p class="results-text" style="color: #1e5631;">No symptoms detected. Continue healthy habits!</p>
             `;
         }
+    }
+
+    // Filter Notices
+    function filterNotices(category) {
+        const tabs = document.querySelectorAll('.filter-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+
+        const notices = document.querySelectorAll('.notice-card');
+        notices.forEach(notice => {
+            if (category === 'all' || notice.dataset.category === category) {
+                notice.style.display = 'block';
+            } else {
+                notice.style.display = 'none';
+            }
+        });
     }
 
     // Charts
